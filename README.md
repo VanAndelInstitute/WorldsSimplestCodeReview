@@ -2,6 +2,20 @@
 
 [![Build Status](https://travis-ci.org/VanAndelInstitute/WorldsSimplestCodeReview.png?branch=master)](https://travis-ci.org/VanAndelInstitute/WorldsSimplestCodeReview)  [![codecov](https://codecov.io/gh/VanAndelInstitute/WorldsSimplestCodeReview/branch/master/graph/badge.svg)](https://codecov.io/gh/VanAndelInstitute/WorldsSimplestCodeReview)
 
+## Cloning a repo into Rstudio
+
+1. In RStudio, go to File -> New Project
+
+2. In the New Project wizard, choose Version Control -> Git repository
+
+3. Enter the URL of your fork and the location on your local machine where you'd
+   like the repository saved.
+
+4. Then Create Project.
+
+5. In the top-right panel there should be a 'Git' tab where you can see what's
+   changed, pull and push commits, and see the commit history.
+
 ## How to finish setting up your new package
 
 Now that you've got a working package skeleton, there are a few steps to finish setting up all the integrations:
