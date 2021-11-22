@@ -10,6 +10,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
+###Send help
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
