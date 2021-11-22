@@ -8,7 +8,7 @@
 #' 
 #' @export
 TET2 <- function(eset) {
-
-
+  
+  stop("This function is not yet implemented!")
 
 }
