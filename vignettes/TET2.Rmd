@@ -16,7 +16,8 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
-load_all("./")
+load_all("./") 
+# the load_all("./") is necessary to make the code run (DNAme does not work without it)
 ```
 
 # Installation
