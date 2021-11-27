@@ -1,63 +1,80 @@
 ---
 title: "Code review: TET2 and hypermethylation"
-author: "Tim Triche"
+author: "Tim Triche_Rev"
 date: "November 22nd, 2021"
 output: 
   html_document:
     keep_md: true
 vignette: >
   %\VignetteIndexEntry{TET2}
-  %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+
+## Reviewed by Richard Cassidy
+
+## date: 11-27-21
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
-load_all("./")
+load_all("./")    
+
+#Not exactly sure what this chunk does, but it is necesarry to run everything else
 ```
 
 # Installation
 
-Install the WorldsSimplestCodeReview package, if you haven't. 
+Install the WorldsSimplestCodeReview package, if you haven't.
 
 ```{r, loadpkgs, eval = FALSE, message = FALSE}
 #install.packages("remotes")
 #install.packages("BiocManager")
 #BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
 library(knitr)
+
+#prepped knitr to be used
 ```
 
 To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
 
-```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE}
+```{r, tangle, eval = FALSE, message = FALSE, echo = TRUE}
 # knitr::knit("TET2.Rmd", tangle = TRUE) 
 # [1] "TET2.R"
+
+#did not use this chunk
 ```
+
+did not use this
 
 # Introduction
 
-Long before any of you were born, back in 2010, an exciting paper came out 
-which purported to show that _IDH1_, _IDH2_, and _TET2_ mutations shared a 
-phenotype of hypermethylation owing to loss of 5-hydroxymethylcytosine. The 
-details can be found in [the paper](https://doi.org/10.1016/j.ccr.2010.11.015), 
-which is indeed a landmark. Nevertheless, some fine details of the work seemed
-to disagree with the results of other cohorts when replication was attempted.
+Long before any of you were born, back in 2010, an exciting paper came
+out which purported to show that *IDH1*, *IDH2*, and *TET2* mutations
+shared a phenotype of hypermethylation owing to loss of
+5-hydroxymethylcytosine. The details can be found in [the
+paper](https://doi.org/10.1016/j.ccr.2010.11.015), which is indeed a
+landmark. Nevertheless, some fine details of the work seemed to disagree
+with the results of other cohorts when replication was attempted.
 
 ![The money shot](figure/TET2.png)
 
-Some of you who have seen volcano plots before can guess where this is going.
+Some of you who have seen volcano plots before can guess where this is
+going.
 
 # The data
 
 ```{r, fetchGEO}
 
-library(limma)
-library(GEOquery)
-if (!exists("DNAme")) data(DNAme)
+library(limma)   
+library(GEOquery) 
+if (!exists("DNAme")) data(DNAme)  
 
-if (FALSE) { # this takes about 5 minutes:
+if (FALSE) { # this takes about 5 minutes:   #if there is not a value for DNAme data, we will need to go retrieve it from the paper)
 
   # needed to fetch data
   library(GEOquery) 
@@ -66,19 +83,21 @@ if (FALSE) { # this takes about 5 minutes:
   # skip the expression data:
   platform <- sapply(MSK_HOVON, annotation)
   methylation <- which(platform == "GPL6604")
-  DNAme <- MSK_HOVON[[methylation]] # GPL6604, HG17_HELP_PROMOTER 
-  DNAme$male <-ifelse(DNAme$characteristics_ch1=="sex (male.1_female.2): 1",1,0)
-  DNAme$TET2 <- ifelse(DNAme$characteristics_ch1.7 == "tet2: WT", 0, 1)
-  DNAme$IDH <- ifelse(DNAme$characteristics_ch1.8 == "idh1.idh2: WT", 0, 1)
-  DNAme$purity <- as.integer(DNAme$"bm_%blasts:ch1") / 100
-  save(DNAme, file="../data/DNAme.rda")
+  DNAme <- MSK_HOVON[[methylation]] # GPL6604, HG17_HELP_PROMOTER    #this takes just the methylation data
+  DNAme$male <-ifelse(DNAme$characteristics_ch1=="sex (male.1_female.2):   #sex data 1",1,0)
+  DNAme$TET2 <- ifelse(DNAme$characteristics_ch1.7 == "tet2: WT", 0, 1) #tet mutation info
+  DNAme$IDH <- ifelse(DNAme$characteristics_ch1.8 == "idh1.idh2: WT", 0, 1) #idh mutation info
+  DNAme$purity <- as.integer(DNAme$"bm_%blasts:ch1") / 100  #purity of the sample info
+  save(DNAme, file="../data/DNAme.rda")  #save to a loval file
 
 }
 
 # how many probes, how many patients?
 dim(DNAme)
-# Features  Samples
-#    25626      394
+# Probes       #Patients
+#25626        #394
+
+#head(DNAme)
 
 ```
 
@@ -86,53 +105,68 @@ dim(DNAme)
 
 Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 
+1) Group 4 is not mutually exclusive and is associated with both TET2 *and* IDH mutations.
+
+2)Otherwise, they are EITHER mututally exlusive OR not present at all.
+
 ```{r, heatmap, eval=TRUE}
 
 # always plot your data
-library(ComplexHeatmap)
-mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
-Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
-        column_names_gp = gpar(fontsize = 7))
+library(ComplexHeatmap) #this is the heatmap we will use
+mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))   #group data by mutations using only TET2 column and IDH column
+Heatmap(mutations, col=c("lightgray","darkred"), name="mutant",column_km=4,
+        column_names_gp = gpar(fontsize = 0)) #make the heatmap, 4 clusters, removed x labels - can't see them anyways
 
 ```
 
-Do we see genome-wide hypermethylation from TET2 mutations? 
+
+
+
+Do we see genome-wide hypermethylation from TET2 mutations?
 
 ```{r, TET2_vs_IDH}
 
 # model TET2 and IDH1/2 mutant related hypermethylation
 # note: there are plenty of confounders (pb%, bm%, wbc) that could be included
-library(limma) 
+library(limma) #limma is a library to deal with microarray data
 
 # simplest design
-design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
-fit1 <- eBayes(lmFit(exprs(DNAme), design1))
+design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 )) #gives a table of data with 1 or 0 indicating a mutation for IDH/TET and the corresponding patient sample
+fit1 <- eBayes(lmFit(exprs(DNAme), design1)) #bayesian analysis
 (IDH_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
                                            coef=grep("IDH", colnames(design1)), 
                                            p.value=0.05, # change if you like 
-                                           number=Inf)))
+                                           number=Inf))) 
+
+# number of probes significatly methylated for IFH1
 # 6513 probes for IDH
 
 (TET_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
                                            coef=grep("TET2", colnames(design1)),
                                            p.value=0.05, # change if you like 
                                            number=Inf)))
+
+# number of probes significatly methylated for TET
 # 6 probes for TET2
 
 # control for sex
-design2 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 + male ))
-fit2 <- eBayes(lmFit(exprs(DNAme), design2))
+design2 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 + male )) # add sex data into the table, new column
+fit2 <- eBayes(lmFit(exprs(DNAme), design2)) #rerun the bayesian stats
 (IDH_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
                                            coef=grep("IDH", colnames(design2)), 
                                            p.value=0.05, # change if you like 
                                            number=Inf)))
+#now see how many probes are significant for IDH when including the sex data
 # 6651 probes for IDH 
 
 (TET2_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
                                             coef=grep("TET", colnames(design2)),
                                             p.value=0.05, # change if you like 
                                             number=Inf)))
+#now see how many probes are signficant for TET when including the sex data
 # 7 probes for TET2
+
+
 
 # control for blast count
 design3 <- with(pData(DNAme), model.matrix( ~ IDH:purity + TET2:purity))
@@ -142,6 +176,9 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
                                            coef=grep("IDH", colnames(design3)), 
                                            p.value=0.05, # change if you like 
                                            number=Inf)))
+
+
+#not sure exactly what this does... 
 # 7450 probes for IDH:purity
 
 (TET2_diffmeth_probes_fit3 <- nrow(topTable(fit3, 
@@ -151,3 +188,19 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 # 10 probes for TET2:purity
 
 ```
+
+
+
+## Richard code critiques
+
+1) Had to install a few packages, but this was doable with James' help.
+
+2) Removed some excess labeling from the generated heatmap since it couldn't be read anyways.
+
+3) Annotated the code that I could. 
+
+## Richard science critiques
+
+1) One group from the clustered heatmap has mutations in both IDH and TET2 indicating that they are not entirely mutually exclusive as claimed in the paper. 
+
+2) Number of TET probes is considerably lower than IDH probes. This does not indicate similar methylation patterns for both mutants. They seem drastically different since there are 6-10 methylation positive probes for TET but >1000 positives for IDH. 
