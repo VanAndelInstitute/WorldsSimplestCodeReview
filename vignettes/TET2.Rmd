@@ -88,6 +88,8 @@ dim(DNAme)
 
 Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 
+With the exception of GSM604380/patient 316, TET2 and IDH1/2 mutations are exclusive.
+
 ```{r, heatmap, eval=TRUE}
 
 # always plot your data
