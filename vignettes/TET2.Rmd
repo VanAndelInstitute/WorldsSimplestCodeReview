@@ -114,6 +114,7 @@ colnames(idh1_idh2) <- c("IDH")
 compiled <- cbind(tet, idh1_idh2)
 View(compiled) # scrolled through and identified the patient/sample number that had the mutations in both TET2 and IDH
 ```
+
 Do we see genome-wide hypermethylation from TET2 mutations? 
 
 ```{r, TET2_vs_IDH}
@@ -169,3 +170,9 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 # 10 probes for TET2:purity
 
 ```
+
+I'm unsure of how to interpret the code above:
+- The annotation/description of the designs are unclear. 
+- Why would we run the code this way?
+- What do the probe numbers mean?
+- How can this be translated into assessing genome-wide methylation?
