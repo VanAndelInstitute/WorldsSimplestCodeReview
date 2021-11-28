@@ -87,8 +87,7 @@ dim(DNAme)
 ### Some contrasts
 
 Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
-
-With the exception of GSM604380/patient 316, TET2 and IDH1/2 mutations are exclusive.
+_With the exception of GSM604380/patient 316, TET2 and IDH1/2 mutations are exclusive._
 
 ```{r, heatmap, eval=TRUE}
 
@@ -100,6 +99,21 @@ Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
 
 ```
 
+### Healthy curiosity
+```{r, The OddBall}
+# one patient is the odd-ball here
+as_tibble(DNAme$`idh1.idh2:ch1`) -> idh1_idh2
+# since there is ch1 and 2, I compared both and they have the exact same information
+# as_tibble(DNAme$`idh1.idh2:ch2`) -> idh1_idh2_next
+# idh1_idh2 == idh1_idh2_next - returns TRUE
+as_tibble(DNAme$`tet2:ch1`) -> tet
+# as_tibble(DNAme$`tet2:ch2`) -> tet_2
+# tet == tet_2 - returns TRUE
+colnames(tet) <- c("TET")
+colnames(idh1_idh2) <- c("IDH")
+compiled <- cbind(tet, idh1_idh2)
+View(compiled) # scrolled through and identified the patient/sample number that had the mutations in both TET2 and IDH
+```
 Do we see genome-wide hypermethylation from TET2 mutations? 
 
 ```{r, TET2_vs_IDH}
