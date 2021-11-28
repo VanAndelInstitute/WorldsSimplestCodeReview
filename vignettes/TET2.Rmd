@@ -101,6 +101,7 @@ Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
 
 ### Healthy curiosity
 ```{r, The OddBall}
+library(tidyverse)
 # one patient is the odd-ball here
 as_tibble(DNAme$`idh1.idh2:ch1`) -> idh1_idh2
 # since there is ch1 and 2, I compared both and they have the exact same information
