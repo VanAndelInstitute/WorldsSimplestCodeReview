@@ -10,6 +10,11 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
+I needed another package installed before this code would run. Package & Code is in the below chunk
+```{r}
+BiocManager::install('GEOquery')
+```
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -21,6 +26,7 @@ load_all("./")
 # Installation
 
 Install the WorldsSimplestCodeReview package, if you haven't. 
+#This chunk was not necessary to run for me.-Riley
 
 ```{r, loadpkgs, eval = FALSE, message = FALSE}
 #install.packages("remotes")
@@ -30,7 +36,7 @@ library(knitr)
 ```
 
 To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
-
+#This chunk was not necessary to run for me.-Riley
 ```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE}
 # knitr::knit("TET2.Rmd", tangle = TRUE) 
 # [1] "TET2.R"
@@ -50,27 +56,43 @@ to disagree with the results of other cohorts when replication was attempted.
 Some of you who have seen volcano plots before can guess where this is going.
 
 # The data
-
+Loading the data from the paper. This requred loading packages limma and GEOquery
 ```{r, fetchGEO}
-
+#Load a package that can be used for Data analysis, linear models, and differential expression for microarray data. This is part of the BioConductor package.
 library(limma)
+#Load GEOquery package, that allows you to get data from the NCBI Gene Expression Omnibus
 library(GEOquery)
+#Load the paper's dataset specifically, if it isn't already; but just the parts you want
 if (!exists("DNAme")) data(DNAme)
 
 if (FALSE) { # this takes about 5 minutes:
 
   # needed to fetch data
   library(GEOquery) 
+  #ID for paper is GSE24505 make a new dataset called MSK_HOVON
+  #MSK_HOVON <- getGEO("GSE24505") returned the error that the "The size of the connection buffer (131072)        was not large enough to fit a complete line"
+  #increase vroom connection size x100 allowed that line of code to work
+  Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 100)
   MSK_HOVON <- getGEO("GSE24505")
 
   # skip the expression data:
+  
+  #make a platform that can easily be subsetted by annotation
   platform <- sapply(MSK_HOVON, annotation)
+  #Define methylation data as an extractable value from platform
   methylation <- which(platform == "GPL6604")
+ 
+   #Get only methylation from MSK_HOVON
   DNAme <- MSK_HOVON[[methylation]] # GPL6604, HG17_HELP_PROMOTER 
+    #Get sex variable from dataset
   DNAme$male <-ifelse(DNAme$characteristics_ch1=="sex (male.1_female.2): 1",1,0)
+    #Get TET2 methylation variable from dataset
   DNAme$TET2 <- ifelse(DNAme$characteristics_ch1.7 == "tet2: WT", 0, 1)
+    #Get IDH methylation variable from dataset
   DNAme$IDH <- ifelse(DNAme$characteristics_ch1.8 == "idh1.idh2: WT", 0, 1)
+    #Get Purity variable from dataset
   DNAme$purity <- as.integer(DNAme$"bm_%blasts:ch1") / 100
+    #Save this file! So that next time: if (!exists("DNAme")) data(DNAme) : will return "TRUE"
   save(DNAme, file="../data/DNAme.rda")
 
 }
@@ -80,6 +102,7 @@ dim(DNAme)
 # Features  Samples
 #    25626      394
 
+#SO, we have 25626 probes and 394 patients/samples
 ```
 
 ### Some contrasts
@@ -89,11 +112,17 @@ Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 ```{r, heatmap, eval=TRUE}
 
 # always plot your data
+#this is the type of plot we are using...
 library(ComplexHeatmap)
-mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
-Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
-        column_names_gp = gpar(fontsize = 7))
 
+#make a matrix of methylation data, coded as a binary
+mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
+#plot the heatmap, I decreased font size to 4 so that single double mutant name was visible
+  #I like the color purple better than red
+Heatmap(mutations, col=c("lightgray","purple"), name="mutant", column_km=4,row_km = 1,
+        column_names_gp = gpar(fontsize = 4))
+
+#Group 1 has no mutations, 2 has only IDH muations, 3 has only TET2 mutations, 4 has both TET2 and IDH mutations
 ```
 
 Do we see genome-wide hypermethylation from TET2 mutations? 
@@ -151,3 +180,7 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 # 10 probes for TET2:purity
 
 ```
+
+In sum, there are more probes for IDH than TET2, on the order of 1000x more probes no matter which design (controlling for sex, purity, etc.)
+If this is the case, then the conclusions of this paper (thatboth mutations are associated with a hypermethylation pattern) should be called into question.
+Instead, it appears that the methylation patterns are different between TET2 vs IDH
