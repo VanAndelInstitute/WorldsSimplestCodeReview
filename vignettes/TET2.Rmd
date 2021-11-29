@@ -13,6 +13,7 @@ vignette: >
 I needed another package installed before this code would run. Package & Code is in the below chunk
 ```{r}
 BiocManager::install('GEOquery')
+BiocManager::install('limma')
 ```
 
 
@@ -123,19 +124,29 @@ Heatmap(mutations, col=c("lightgray","purple"), name="mutant", column_km=4,row_k
         column_names_gp = gpar(fontsize = 4))
 
 #Group 1 has no mutations, 2 has only IDH muations, 3 has only TET2 mutations, 4 has both TET2 and IDH mutations
+
 ```
+Group 4 could have been easily missed if the data was not plotted!
+GSM604380 has both IDH and TET2 mutations.
 
 Do we see genome-wide hypermethylation from TET2 mutations? 
 
 ```{r, TET2_vs_IDH}
+#This code is looking at methylation probes based on three different designs
+  #Design 1 controls for no extra variables
+  #Design 2 controls for sex
+  #Design 3 controls for purity
 
 # model TET2 and IDH1/2 mutant related hypermethylation
 # note: there are plenty of confounders (pb%, bm%, wbc) that could be included
 library(limma) 
 
 # simplest design
+  #first make matrix of 01 for IDH or TET2 mutations
 design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
+  #then use this matrix to run bayesian analysis
 fit1 <- eBayes(lmFit(exprs(DNAme), design1))
+  # & now get number of sig (p<0.05) probes, split by IDH vs TET2
 (IDH_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
                                            coef=grep("IDH", colnames(design1)), 
                                            p.value=0.05, # change if you like 
@@ -149,8 +160,11 @@ fit1 <- eBayes(lmFit(exprs(DNAme), design1))
 # 6 probes for TET2
 
 # control for sex
+  #make a matrix with 01 for mutation status and sex as a new column
 design2 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 + male ))
+  #bayesian analysis rerun with sex variable
 fit2 <- eBayes(lmFit(exprs(DNAme), design2))
+  #report sig probes
 (IDH_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
                                            coef=grep("IDH", colnames(design2)), 
                                            p.value=0.05, # change if you like 
@@ -164,6 +178,8 @@ fit2 <- eBayes(lmFit(exprs(DNAme), design2))
 # 7 probes for TET2
 
 # control for blast count
+#Do we assume here that blast count = purity? and vice versa? could use some help with understanding the measurement here.
+
 design3 <- with(pData(DNAme), model.matrix( ~ IDH:purity + TET2:purity))
 fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 
@@ -182,5 +198,6 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 ```
 
 In sum, there are more probes for IDH than TET2, on the order of 1000x more probes no matter which design (controlling for sex, purity, etc.)
-If this is the case, then the conclusions of this paper (thatboth mutations are associated with a hypermethylation pattern) should be called into question.
-Instead, it appears that the methylation patterns are different between TET2 vs IDH
+If this is the case, then the conclusions of this paper (that both mutations are associated with a hypermethylation pattern) should be called into question.
+Instead, it appears that the methylation patterns are different between TET2 vs IDH mutated tumors.
+
