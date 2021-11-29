@@ -53,6 +53,7 @@ Some of you who have seen volcano plots before can guess where this is going.
 
 ```{r, fetchGEO}
 
+install.packages(lima)
 library(limma)
 library(GEOquery)
 if (!exists("DNAme")) data(DNAme)
