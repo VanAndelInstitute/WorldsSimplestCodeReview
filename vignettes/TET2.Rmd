@@ -11,14 +11,19 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(devtools)
-load_all("./")
+library(devtools) #install the package first - install.packages("devtools")
+load_all("./") 
 ```
+# load_all function does not work without the 'limma' package as well as GEOquery. Install packages before proceeding:
+BiocManager::install("limma")
+BiocManager::install("GEOquery")
+Then proceed with the chunk above
 
-# Installation
+# Installation - install the packages first (including knitr and devtools)
 
 Install the WorldsSimplestCodeReview package, if you haven't. 
 
@@ -26,7 +31,7 @@ Install the WorldsSimplestCodeReview package, if you haven't.
 #install.packages("remotes")
 #install.packages("BiocManager")
 #BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
-library(knitr)
+library(knitr) "install the package first  - install.packages("knitr")
 ```
 
 To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
@@ -82,7 +87,8 @@ dim(DNAme)
 
 ```
 
-### Some contrasts
+### Some contrasts  - #install the package ComplexHeatmap before proceeding:
+BiocManager::install("ComplexHeatmap")
 
 Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 
@@ -104,6 +110,7 @@ medata %>% table()
 ❗ _GSM604380 is not exclusive for the mutation._ One of the results from the
 paper is that the mutations are mutually exclusive. The data from this code
 does not match what is found in their results.
+
 
 Do we see genome-wide hypermethylation from TET2 mutations? 
 
