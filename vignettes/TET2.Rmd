@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
 load_all("./")
+# not sure what this is for but it is important. When this chunk is ran, a pretty Rmd is pulled up of the code.
 ```
 
 # Installation
@@ -34,6 +35,8 @@ To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
 ```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE}
 # knitr::knit("TET2.Rmd", tangle = TRUE) 
 # [1] "TET2.R"
+
+#What is the point of this chunk?
 ```
 
 # Introduction
@@ -92,7 +95,7 @@ Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 library(ComplexHeatmap)
 mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
 Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
-        column_names_gp = gpar(fontsize = 7))
+        column_names_gp = gpar(fontsize = 0))
 
 ```
 
@@ -111,6 +114,8 @@ fit1 <- eBayes(lmFit(exprs(DNAme), design1))
                                            coef=grep("IDH", colnames(design1)), 
                                            p.value=0.05, # change if you like 
                                            number=Inf)))
+#if you're having trouble running this entire chunk or receiving error "'pData': object 'DNAme' not found", run design1 chunk of code first and the rest of the chunk should follow suit. I don't know why that is or if it is just me.
+
 # 6513 probes for IDH
 
 (TET_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
@@ -126,6 +131,7 @@ fit2 <- eBayes(lmFit(exprs(DNAme), design2))
                                            coef=grep("IDH", colnames(design2)), 
                                            p.value=0.05, # change if you like 
                                            number=Inf)))
+
 # 6651 probes for IDH 
 
 (TET2_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
