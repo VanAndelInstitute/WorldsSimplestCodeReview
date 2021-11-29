@@ -1,74 +1,35 @@
----
-title: "Code review: TET2 and hypermethylation"
-author: "Tim Triche.AJG"
-date: "November 29th, 2021"
-output: 
-  html_document:
-    keep_md: true
-vignette: >
-  %\VignetteIndexEntry{TET2}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
----
+## ----message=FALSE, loadpkgs, eval=FALSE-----------------------------------------------------------------
+#> install.packages("remotes")
+#> install.packages("BiocManager")
+#> library(BiocManager)
+#> if (!require("GEOquery")) {
+#>   BiocManager::install("GEOquery")
+#>   library(GEOquery)
+#> }
+#> if(!require("limma")) {
+#>   BiocManager::install("limma")
+#>   library(limma)
+#> }
+#> #Kate told me I needed this and then I started Rstudio again and now it
+#> #seems to work.
+#> BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
+#> library(tidyverse)
+#> library(knitr)
+#> knitr::opts_chunk$set(echo = TRUE)
+#> knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+#> if (!requireNamespace("BiocManager", quietly = TRUE))
+#>     install.packages("BiocManager")
+#> 
+#> library(devtools)
+#> load_all("./")
 
 
-# I trust that I need this but could not build this on my own
-# Already eviewed by Svetlana Djirackor (THANKS)
+## ---- tangle, eval = FALSE, message = FALSE, echo = TRUE-------------------------------------------------
+#> knitr::knit("TET2.Rmd", tangle = TRUE)
+#> [1] "TET2.R"
 
-# Installation
 
-Install the WorldsSimplestCodeReview package, if you haven't. 
-
-```{r message=FALSE, loadpkgs, eval=FALSE}
-install.packages("remotes")
-install.packages("BiocManager")
-library(BiocManager)
-if (!require("GEOquery")) {
-  BiocManager::install("GEOquery")
-  library(GEOquery)
-}
-if(!require("limma")) {
-  BiocManager::install("limma")
-  library(limma)
-} 
-#Kate told me I needed this and then I started Rstudio again and now it
-#seems to work. 
-BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
-library(tidyverse)
-library(knitr)
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-library(devtools)
-load_all("./")
-```
-
-To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
-
-```{r, tangle, eval = FALSE, message = FALSE, echo = TRUE}
-knitr::knit("TET2.Rmd", tangle = TRUE) 
-"TET2.R"
-#when I run this chunk nothing appears to happen.
-```
-
-# Introduction
-
-Long before any of you were born, back in 2010, an exciting paper came out 
-which purported to show that _IDH1_, _IDH2_, and _TET2_ mutations shared a 
-phenotype of hypermethylation owing to loss of 5-hydroxymethylcytosine. The 
-details can be found in [the paper](https://doi.org/10.1016/j.ccr.2010.11.015), 
-which is indeed a landmark. Nevertheless, some fine details of the work seemed
-to disagree with the results of other cohorts when replication was attempted.
-
-![The money shot](figure/TET2.png)
-
-Some of you who have seen volcano plots before can guess where this is going.
-
-# The data
-
-```{r, fetchGEO}
+## ---- fetchGEO-------------------------------------------------------------------------------------------
 
 library(limma)
 library(GEOquery)
@@ -94,40 +55,22 @@ if (FALSE) { # this takes about 5 minutes:
 
 # how many probes, how many patients?
 dim(DNAme)
-#I get the same answer as what the vignette has
-#It made something. A large data set of a format that I don't understand
-view(DNAme)
+# Features  Samples
+#    25626      394
 
-```
 
-### Some contrasts
 
-Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
-_With the exception of GSM604380/patient 316, TET2 and IDH1/2 mutations are exclusive._
-
-```{r, heatmap, eval=TRUE}
+## ---- heatmap, eval=TRUE---------------------------------------------------------------------------------
 
 # always plot your data
-install.packages("nat")
-install.packages("ComplexHeatmap")
 library(ComplexHeatmap)
-medata <- pData(DNAme)[, c("TET2", "IDH")]
-mutations <- t(as.matrix(medata))
-Heatmap(mutations,
-    col = c("lightgray", "darkred"), name = "mutant", column_km = 4,
-    column_names_gp = gpar(fontsize = 7)
-)
+mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
+Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
+        column_names_gp = gpar(fontsize = 7))
 
-# get any samples that have both genes mutated
-(non_exclusive  <- medata %>% dplyr::filter(TET2 == 1 & IDH == 1))
-medata %>% table()
-```
-❗ _GSM604380 is not exclusive for the mutation._ One of the results from the
-paper is that the mutations are mutually exclusive. The data from this code
-does not match what is found in their results.
 
-### Healthy curiosity
-```{r, The OddBall}
+
+## ---- The OddBall----------------------------------------------------------------------------------------
 library(tidyverse)
 # one patient is the odd-ball here
 as_tibble(DNAme$`idh1.idh2:ch1`) -> idh1_idh2
@@ -141,19 +84,15 @@ colnames(tet) <- c("TET")
 colnames(idh1_idh2) <- c("IDH")
 compiled <- cbind(tet, idh1_idh2)
 View(compiled) # scrolled through and identified the patient/sample number that had the mutations in both TET2 and IDH
-```
 
-Do we see genome-wide hypermethylation from TET2 mutations? 
 
-```{r, TET2_vs_IDH}
+## ---- TET2_vs_IDH----------------------------------------------------------------------------------------
 
 # model TET2 and IDH1/2 mutant related hypermethylation
 # note: there are plenty of confounders (pb%, bm%, wbc) that could be included
 library(limma) 
 
-# simplest design: model gene expression with IDH and TET2 mutation status and 
-# pull top ranked significant genes from liner model fit, get probes for each
-# gene
+# simplest design
 design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
 fit1 <- eBayes(lmFit(exprs(DNAme), design1))
 (IDH_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
@@ -199,10 +138,4 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
                                             number=Inf)))
 # 10 probes for TET2:purity
 
-```
 
-I'm unsure of how to interpret the code above:
-- The annotation/description of the designs are unclear. 
-- Why would we run the code this way?
-- What do the probe numbers mean?
-- How can this be translated into assessing genome-wide methylation?
