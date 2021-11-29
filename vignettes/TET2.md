@@ -1,3 +1,4 @@
+#Did not run these.
 ---
 title: "Code review: TET2 and hypermethylation"
 author: "Tim Triche"
@@ -12,12 +13,13 @@ vignette: >
 ---
 
 
+#Start code running here!!!
 
-# Installation
+# First:Installation
 
 Install the WorldsSimplestCodeReview package, if you haven't. 
 
-
+#Install these packages and run code w/o hashtag
 ```r
 #install.packages("remotes")
 #install.packages("BiocManager")
@@ -25,6 +27,7 @@ Install the WorldsSimplestCodeReview package, if you haven't.
 library(knitr)
 ```
 
+#This code reads an error, requires additional? When ran, a '+' sign is added to next line. Excluded this code as a result.To remove lus sign hit "ESC" 
 To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
 
 
@@ -48,13 +51,19 @@ Some of you who have seen volcano plots before can guess where this is going.
 ```r
 
 library(limma)
+
+
 library(GEOquery)
+
+#DName not found, showed up as warning message
 if (!exists("DNAme")) data(DNAme)
+
 
 if (FALSE) { # this takes about 5 minutes:
 
   # needed to fetch data
   library(GEOquery) 
+  install
   MSK_HOVON <- getGEO("GSE24505")
 
   # skip the expression data:
