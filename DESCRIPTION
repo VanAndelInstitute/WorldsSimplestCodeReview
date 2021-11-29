@@ -13,10 +13,13 @@ License: CC0
 Depends:
     R (>= 3.0.0),
     GEOquery, 
+    ggplot2,
     limma
 Imports:
 Suggests:
     covr,
+    tidyverse,
+    plotly,
     testthat
 RoxygenNote: 6.0.0
 Roxygen: list(markdown = TRUE)
