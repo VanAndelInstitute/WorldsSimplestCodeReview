@@ -88,7 +88,7 @@ Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 library(ComplexHeatmap)
 #> Loading required package: grid
 #> ========================================
-#> ComplexHeatmap version 2.10.0
+#> ComplexHeatmap version 2.8.0
 #> Bioconductor page: http://bioconductor.org/packages/ComplexHeatmap/
 #> Github page: https://github.com/jokergoo/ComplexHeatmap
 #> Documentation: http://jokergoo.github.io/ComplexHeatmap-reference
@@ -103,12 +103,31 @@ library(ComplexHeatmap)
 #> This message can be suppressed by:
 #>   suppressPackageStartupMessages(library(ComplexHeatmap))
 #> ========================================
-mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
-Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
-        column_names_gp = gpar(fontsize = 7))
+medata <- pData(DNAme)[, c("TET2", "IDH")]
+mutations <- t(as.matrix(medata))
+Heatmap(mutations,
+    col = c("lightgray", "darkred"), name = "mutant", column_km = 4,
+    column_names_gp = gpar(fontsize = 7)
+)
 ```
 
-![plot of chunk heatmap](figure/heatmap-1.png)
+![](TET2_files/figure-html/heatmap-1.png)<!-- -->
+
+```r
+
+# get any samples that have both genes mutated
+(non_exclusive  <- medata %>% dplyr::filter(TET2 == 1 & IDH == 1))
+#>           TET2 IDH
+#> GSM604380    1   1
+medata %>% table()
+#>     IDH
+#> TET2   0   1
+#>    0 302  50
+#>    1  41   1
+```
+❗ _GSM604380 is not exclusive for the mutation._ One of the results from the
+paper is that the mutations are mutually exclusive. The data from this code
+does not match what is found in their results.
 
 Do we see genome-wide hypermethylation from TET2 mutations? 
 
@@ -119,7 +138,9 @@ Do we see genome-wide hypermethylation from TET2 mutations?
 # note: there are plenty of confounders (pb%, bm%, wbc) that could be included
 library(limma) 
 
-# simplest design
+# simplest design: model gene expression with IDH and TET2 mutation status and 
+# pull top ranked significant genes from liner model fit, get probes for each
+# gene
 design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
 fit1 <- eBayes(lmFit(exprs(DNAme), design1))
 (IDH_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
