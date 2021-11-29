@@ -90,11 +90,20 @@ Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 
 # always plot your data
 library(ComplexHeatmap)
-mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
-Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
-        column_names_gp = gpar(fontsize = 7))
+medata <- pData(DNAme)[, c("TET2", "IDH")]
+mutations <- t(as.matrix(medata))
+Heatmap(mutations,
+    col = c("lightgray", "darkred"), name = "mutant", column_km = 4,
+    column_names_gp = gpar(fontsize = 7)
+)
 
+# get any samples that have both genes mutated
+(non_exclusive  <- medata %>% dplyr::filter(TET2 == 1 & IDH == 1))
+medata %>% table()
 ```
+❗ _GSM604380 is not exclusive for the mutation._ One of the results from the
+paper is that the mutations are mutually exclusive. The data from this code
+does not match what is found in their results.
 
 Do we see genome-wide hypermethylation from TET2 mutations? 
 
@@ -104,7 +113,9 @@ Do we see genome-wide hypermethylation from TET2 mutations?
 # note: there are plenty of confounders (pb%, bm%, wbc) that could be included
 library(limma) 
 
-# simplest design
+# simplest design: model gene expression with IDH and TET2 mutation status and 
+# pull top ranked significant genes from liner model fit, get probes for each
+# gene
 design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
 fit1 <- eBayes(lmFit(exprs(DNAme), design1))
 (IDH_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
