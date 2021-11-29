@@ -53,6 +53,7 @@ Some of you who have seen volcano plots before can guess where this is going.
 
 ```{r, fetchGEO}
 
+install.packages(lima)
 library(limma)
 library(GEOquery)
 if (!exists("DNAme")) data(DNAme)
@@ -162,3 +163,4 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 # 10 probes for TET2:purity
 
 ```
+IDH and TET2 are mutually exclusive as indicative by the probe numbers.There is a vast difference in probe number values for both with IDH >5000 and TET2 <10. This also aligns with the conclusions derived from the paper. Therefore, I would say the the codes were able to prove the points that they were trying to make about mutual exclusiveness of the genes. The part that remains a bit unclear is how exactly does this tie into genome wide hypermethylation. 
