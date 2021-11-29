@@ -12,6 +12,10 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+
+BiocManager::install("GEOquery")
+BiocManager::install("limma")
+
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
@@ -45,6 +49,9 @@ details can be found in [the paper](https://doi.org/10.1016/j.ccr.2010.11.015),
 which is indeed a landmark. Nevertheless, some fine details of the work seemed
 to disagree with the results of other cohorts when replication was attempted.
 
+#To be accurate, all of the 2021 cohort members were very much so alive prior 
+#to 2010
+
 ![The money shot](figure/TET2.png)
 
 Some of you who have seen volcano plots before can guess where this is going.
@@ -77,10 +84,16 @@ if (FALSE) { # this takes about 5 minutes:
 
 # how many probes, how many patients?
 dim(DNAme)
-# Features  Samples
-#    25626      394
-
+# Features    Samples
+#    25626     394
 ```
+#^^note:features==probes, samples==patients
+#^^this output indicates that only 25,626 CpG sites are available for analysis,
+#though the original paper reports testing ~50,000 sites. Why is there such a
+#discrepancy?
+#original paper excludes 15 of 398 patients for analysis, yet there are still 
+#394 patients included in the dataframe. Why are there not 385 patients 
+#included, as reported in the paper?
 
 ### Some contrasts
 
@@ -151,3 +164,32 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 # 10 probes for TET2:purity
 
 ```
+#Paige's code review:
+ ##The following additions were necessary in the first chunk of code:
+ #1) BiocManager::install("GEOquery")
+ #2) BiocManager::install("limma")
+ 
+#Paige's science review:
+ 1) Assumptions regarding the term "probe":
+         A) I assume a "probe" is one of the ~50,000 CpG islands sites 
+         that the authors looked at in the paper.
+         B) I also assume that "6513 probes for IDH" (for example) infers that 
+         the same 6513 CpG islands are mutated across all samples harboring an 
+         IDH mutation.
+ 2) According to the heatmap provided (under #always plot your data), 
+ it is evident IF either IDH1/2 or TET2 mutations are present in the AML
+ patients, these mutations LARGELY occur mutually exclusive of each other.
+ However, it should be noted that most of the samples harbored neither mutation.
+ Additionally,the heatmap also demonstrates a small population of samples that 
+ harbor both mutations.Therefore, it is misleading to say these mutations are 
+ mutually exclusive.
+       A) Question: If the vast majority of the samples extracted from these AML
+       patients do not harbor either mutation, is this really a defining 
+       feature of AML?
+ 3) The 6500+ hits for methylated CpG sites in IDH mutated-samples vs. 
+ the ~10 hits for the TET2 mutated-samples indicates that these mutations have 
+ differential associations with hypermethylation at CpG sites. It is misleading
+ for the authors to indicate that both kinds of mutations engender "overlapping"
+ hypermethylation signatures, considering that even if all TET2-related sites
+ overlapped with the IDH-related sites, this only represents 0.15% of all
+ sites implicated by IDH mutation.
