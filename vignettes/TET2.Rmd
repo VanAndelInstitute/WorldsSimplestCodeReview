@@ -10,13 +10,19 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
-###Send help
+# K. Thurlow review 11_28_21
+# Connected to github via instructions on main fork
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
+library(BiocManager)
+BiocManager::install("GEOquery")
 load_all("./")
+# Error occurred saying GEOquery wasn't available. Added lines to library BiocManager and install GEOquery as part of BiocManager package.
+  #Asked whether to install from sources and update a/s/n, went for no to both. 
+  #Assuming load_all is function for loading all sub-packages, but not sure how you tell it which package it refers to.
 ```
 
 # Installation
@@ -28,13 +34,16 @@ Install the WorldsSimplestCodeReview package, if you haven't.
 #install.packages("BiocManager")
 #BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
 library(knitr)
+library(dplyr)
+  ## Said yes to update from sources this time. Also added dplyr to library. I generally have difficulty with setup every time so not sure if I'm missing an obvious step! Everything seems to be loaded OK now though, so on we go! 
 ```
 
 To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
 
-```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE}
+```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE} 
 # knitr::knit("TET2.Rmd", tangle = TRUE) 
 # [1] "TET2.R"
+  ## I'm still not sure what commands to put in the {} brackets for an r markdown so not 100% sure what these lines mean
 ```
 
 # Introduction
@@ -46,7 +55,8 @@ details can be found in [the paper](https://doi.org/10.1016/j.ccr.2010.11.015),
 which is indeed a landmark. Nevertheless, some fine details of the work seemed
 to disagree with the results of other cohorts when replication was attempted.
 
-![The money shot](figure/TET2.png)
+![The money shot](figure/TET2.png) 
+# This is Fig6 from the paper, suggesting TET2 mutant AML is associated with a hypermethylation p/type. Volcano plot (D) shows skew towards higher amount fo methylation in TET2 mutant compared to both TET2 and IDH WT. NB IDH and TET2 mutations mutually exclusive in AML.
 
 Some of you who have seen volcano plots before can guess where this is going.
 
@@ -59,25 +69,25 @@ library(GEOquery)
 if (!exists("DNAme")) data(DNAme)
 
 if (FALSE) { # this takes about 5 minutes:
-
+#This didn't actually take 5 minutes for me so I hope it hasn't missed anything! Updated none
   # needed to fetch data
   library(GEOquery) 
-  MSK_HOVON <- getGEO("GSE24505")
+  MSK_HOVON <- getGEO("GSE24505") #pulls GSE24505 dataset from GEOquery and labels it MSK_HOVON
 
   # skip the expression data:
-  platform <- sapply(MSK_HOVON, annotation)
-  methylation <- which(platform == "GPL6604")
-  DNAme <- MSK_HOVON[[methylation]] # GPL6604, HG17_HELP_PROMOTER 
-  DNAme$male <-ifelse(DNAme$characteristics_ch1=="sex (male.1_female.2): 1",1,0)
-  DNAme$TET2 <- ifelse(DNAme$characteristics_ch1.7 == "tet2: WT", 0, 1)
-  DNAme$IDH <- ifelse(DNAme$characteristics_ch1.8 == "idh1.idh2: WT", 0, 1)
-  DNAme$purity <- as.integer(DNAme$"bm_%blasts:ch1") / 100
-  save(DNAme, file="../data/DNAme.rda")
-
+  platform <- sapply(MSK_HOVON, annotation) #Using MSK_HOVON, pull datapoints with annotation into "platform"
+  methylation <- which(platform == "GPL6604") #Select those datapoints within "platform" for which values are "GPL6604"- methylation data
+  DNAme <- MSK_HOVON[[methylation]] # GPL6604, HG17_HELP_PROMOTER. Create new dataset "DNAme" with just methylation data
+  DNAme$male <-ifelse(DNAme$characteristics_ch1=="sex (male.1_female.2): 1",1,0) #Variable w/in DNAme for sex
+  DNAme$TET2 <- ifelse(DNAme$characteristics_ch1.7 == "tet2: WT", 0, 1) #Variable w/in DNAme for TET2 mutation/ WT
+  DNAme$IDH <- ifelse(DNAme$characteristics_ch1.8 == "idh1.idh2: WT", 0, 1) #Variable w/in DNAme for IDH mutation/WT
+  DNAme$purity <- as.integer(DNAme$"bm_%blasts:ch1") / 100 #Variable w/in DNAme for % purity 
+  save(DNAme, file="../data/DNAme.rda") #Save DNAme dataset in local files
 }
 
+
 # how many probes, how many patients?
-dim(DNAme)
+dim(DNAme) #dimensions of new DNAme dataset; features == probes, samples == patients
 # Features  Samples
 #    25626      394
 
@@ -88,16 +98,29 @@ dim(DNAme)
 Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 
 ```{r, heatmap, eval=TRUE}
-
 # always plot your data
-library(ComplexHeatmap)
-mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
-Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
-        column_names_gp = gpar(fontsize = 7))
+# Came up against some major packages problems here. ComplexHeatmap wasn't in my library, despite having BiocManager loaded. 
+  #BiocManager::install(ComplexHeatmap) didn't work, neither did loading Cairo (a potential problem according to the internet)
+  #below code given my Tommy (thank you!), but still didn't seem to fix the issue.
+  #Re-downloaded R. SUCCESS! 
 
+if(!require("ComplexHeatmap"))  {
+      BiocManager::install("ComplexHeatmap", dependencies=TRUE)
+library(ComplexHeatmap)
+}
 ```
 
+```{r, heatmap, eval=TRUE}
+mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")])) #create mutation matrix by TET2 and IDH mutation
+Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
+        column_names_gp = gpar(fontsize = 0)) #heatmap of "mutations" matrix with light gray signifying WT and darkred signifying mutant with 4 groups
+
+```
+# From the heatmap produced Group 4 contains both IDH and TET2 mutations. Outside of this group, the mutations are either mutually exclusive or absent. Suggests authors either ignored this group in reference to figure 6, or thought it not statistically significant. Removed x labels as numbers are not distinguishable. 
+# NB at this point I would have liked to have taken a closer look at group 4, ie how many are there in that group (presumably judging by the heat map not a massive amount), are they randomly distributed etc. But I tried to play about to find a way to do this and came up with nothing. 
+
 Do we see genome-wide hypermethylation from TET2 mutations? 
+  # No?!
 
 ```{r, TET2_vs_IDH}
 
@@ -106,49 +129,68 @@ Do we see genome-wide hypermethylation from TET2 mutations?
 library(limma) 
 
 # simplest design
-design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
-fit1 <- eBayes(lmFit(exprs(DNAme), design1))
+design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 )) #Table with binary coding for presence of IDH and TET2 mutations (1==yes, 0==no) with intercept ==1
+fit1 <- eBayes(lmFit(exprs(DNAme), design1)) #first Bayesian analysis model with design 1 table
 (IDH_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
                                            coef=grep("IDH", colnames(design1)), 
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 6513 probes for IDH
+# 6513 probes methylated at a significance value of 0.05 for IDH
 
 (TET_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
                                            coef=grep("TET2", colnames(design1)),
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 6 probes for TET2
+# 6 probes methylated at a significance value of 0.05 for TET2
 
 # control for sex
-design2 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 + male ))
-fit2 <- eBayes(lmFit(exprs(DNAme), design2))
+design2 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 + male )) #table with binary coding as design 1, but with addition of sex variable where 1==male, 0==female
+fit2 <- eBayes(lmFit(exprs(DNAme), design2)) #second Bayesian model with design 2 ie including sex confounder
 (IDH_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
                                            coef=grep("IDH", colnames(design2)), 
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 6651 probes for IDH 
+# 6651 probes methylated at a significance value of 0.05 for IDH 
+  # Higher number of significant probes for IDH when including sex variable
 
 (TET2_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
                                             coef=grep("TET", colnames(design2)),
                                             p.value=0.05, # change if you like 
                                             number=Inf)))
-# 7 probes for TET2
+# 7 probes methylated at a significance value of 0.05 for TET2
+  # Slightly higher (+1) significant number of probes for TET2 when including sex variable
 
 # control for blast count
-design3 <- with(pData(DNAme), model.matrix( ~ IDH:purity + TET2:purity))
-fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
+design3 <- with(pData(DNAme), model.matrix( ~ IDH:purity + TET2:purity)) #Table looking at %purity of sample for both IDH and TET2 on continuous scale from 0-1
+fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3)) # Bayesian analysis for purity 
 
 (IDH_diffmeth_probes_fit3 <- nrow(topTable(fit3, 
                                            coef=grep("IDH", colnames(design3)), 
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 7450 probes for IDH:purity
-
+# 7450 probes methylated at a significance value of 0.05 for IDH:purity
+  # Higher number of significant probes when fitting for % DNA purity of sample for IDH
 (TET2_diffmeth_probes_fit3 <- nrow(topTable(fit3, 
                                             coef=grep("TET", colnames(design3)),
-                                            p.value=0.05, # change if you like 
+                                            p.value=0.05, 
                                             number=Inf)))
-# 10 probes for TET2:purity
-
+# 10 probes methylated at a significance value of 0.05 for TET2:purity
+  #Higher number of significant probes when fitting for % DNA purity of sample for TET2
 ```
+# Conclusions and Critiques #
+I would guess from this analysis that the sex differences have an effect on the methylation status of IDH, and possibly also TET2, but as there are so few probes it is difficult to say this with any certainty for TET2. This low number also suggests to me that we do not see GW hypermethylation of TET2? 
+  It is also indicated that the %purity of obtained samples has a larger effect on methlyation status of both genes than either sex differences or mutation. Hence, it would be useful to do the mutational analysis with a threshold/ cut off for % purity of samples for both IDH and TET2 (looking at the design 3 table they don't always overlap very well). 
+
+
+This analysis also suggests that the authors assumption of mutual exclusivity between IDH and TET2 mutations is not seen in their sample so further investigation into this group (4 from heatmap), would be beneficial.
+  The authors are suggesting that LOF TET2 mutations are associated with the same epigenetic defects as IDH mutations, however using Bayesian analyses (fit 1) the mutant forms seemed to have wildly different methylation status (6513 for IDH and 6 for TET2), so I would like to look into this a bit further and see what they were getting at here! 
+
+# Code Review Points #
+  I had a major issue when it came to the Heatmap as it refused to load ComplexHeatmap, but a re-installation of R seemed to do the trick! (Thank you Thomas!) I'm not sure if there is a standard list of packages we should be installing every time that I keep missing, but hopefully now I've re-installed I may not have these same issues starting up as I normally do.
+    
+  I removed the x axis labels from the heatmap as they were too clustered to see anyway 
+  
+  I tried to annotate as best I could with either what I believed the code to be aiming for, or where I wasn't sure. 
+   
+p.s. also had major issues uploading to github  
+
