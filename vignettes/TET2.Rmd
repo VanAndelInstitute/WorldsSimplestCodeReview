@@ -11,31 +11,46 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(devtools)
-load_all("./") 
+
 # I trust that I need this but could not build this on my own
-```
 # Already eviewed by Svetlana Djirackor (THANKS)
 
 # Installation
 
 Install the WorldsSimplestCodeReview package, if you haven't. 
 
-```{r, loadpkgs, eval = FALSE, message = FALSE}
-#install.packages("remotes")
-#install.packages("BiocManager")
-#BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
+```{r message=FALSE, loadpkgs, eval=FALSE}
+install.packages("remotes")
+install.packages("BiocManager")
+library(BiocManager)
+if (!require("GEOquery")) {
+  BiocManager::install("GEOquery")
+  library(GEOquery)
+}
+if(!require("limma")) {
+  BiocManager::install("limma")
+  library(limma)
+} 
+#Kate told me I needed this and then I started Rstudio again and now it
+#seems to work. 
+BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
+library(tidyverse)
 library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+library(devtools)
+load_all("./")
 ```
 
 To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
 
-```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE}
-# knitr::knit("TET2.Rmd", tangle = TRUE) 
-# [1] "TET2.R"
+```{r, tangle, eval = FALSE, message = FALSE, echo = TRUE}
+knitr::knit("TET2.Rmd", tangle = TRUE) 
+"TET2.R"
+#when I run this chunk nothing appears to happen.
 ```
 
 # Introduction
@@ -79,8 +94,9 @@ if (FALSE) { # this takes about 5 minutes:
 
 # how many probes, how many patients?
 dim(DNAme)
-# Features  Samples
-#    25626      394
+#I get the same answer as what the vignette has
+#It made something. A large data set of a format that I don't understand
+view(DNAme)
 
 ```
 
@@ -92,6 +108,8 @@ _With the exception of GSM604380/patient 316, TET2 and IDH1/2 mutations are excl
 ```{r, heatmap, eval=TRUE}
 
 # always plot your data
+install.packages("nat")
+install.packages("ComplexHeatmap")
 library(ComplexHeatmap)
 mutations <- t(as.matrix(pData(DNAme)[, c("TET2", "IDH")]))
 Heatmap(mutations, col=c("lightgray","darkred"), name="mutant", column_km=4,
