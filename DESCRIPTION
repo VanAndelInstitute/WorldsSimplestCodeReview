@@ -2,8 +2,8 @@ Package: WorldsSimplestCodeReview
 Type: Package
 Title: Like it says on the tin.
 Description: Does the original TET2 hypermethylation phenotype data check out?
-Version: 0.0.1
-Date: 2021-11-22
+Version: 0.0.2
+Date: 2021-11-29
 Authors@R: person(c("Anon", "E."), "Mouse", role=c("aut", "cre"), email="trichelab@gmail.com")
 Author: Anon E. Mouse [aut, cre]
 Maintainer: Anon E. Mouse <trichelab@gmail.com>
@@ -12,14 +12,16 @@ BugReports: https://github.com/VanAndelInstitute/WorldsSimplestCodeReview/issues
 License: CC0
 Depends:
     R (>= 3.0.0),
-    GEOquery, 
+    BiocManager,
+    Biobase, 
     ggplot2,
     limma
 Imports:
 Suggests:
     covr,
-    tidyverse,
+    GEOquery, 
     plotly,
-    testthat
-RoxygenNote: 6.0.0
+    testthat,
+    tidyverse
+RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)
