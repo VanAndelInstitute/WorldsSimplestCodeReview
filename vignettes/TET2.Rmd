@@ -1,7 +1,7 @@
 ---
 title: "Code review: TET2 and hypermethylation"
-author: "Tim Triche"
-date: "November 22nd, 2021"
+author: "Tim Triche.AJG"
+date: "November 29th, 2021"
 output: 
   html_document:
     keep_md: true
@@ -16,9 +16,9 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
 load_all("./") 
-# the load_all("./") is necessary to make the code run (DNAme does not work without it)
+# I trust that I need this but could not build this on my own
 ```
-# Reviewed by Svetlana Djirackor
+# Already eviewed by Svetlana Djirackor (THANKS)
 
 # Installation
 
