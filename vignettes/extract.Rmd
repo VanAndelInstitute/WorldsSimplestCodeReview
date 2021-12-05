@@ -237,7 +237,7 @@ almost all grants are cut by some percentage. In this case, one uses the worst
 bids for every reagent and service, along with the most ridiculous multiple 
 comparisons correction, to give the appearance of rigor (and actually have 
 enough money to conduct a rigorous experiment as designed, if it comes to pass). 
-<details> 
+</details> 
 
 ### Solid tumors
 
