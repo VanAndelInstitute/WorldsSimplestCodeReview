@@ -129,6 +129,7 @@ Heatmap(mutations, col=c("lightgray","purple"), name="mutant", column_km=4,row_k
 Group 4 could have been easily missed if the data was not plotted!
 GSM604380 has both IDH and TET2 mutations.
 
+
 Do we see genome-wide hypermethylation from TET2 mutations? 
 
 ```{r, TET2_vs_IDH}
@@ -141,8 +142,11 @@ Do we see genome-wide hypermethylation from TET2 mutations?
 # note: there are plenty of confounders (pb%, bm%, wbc) that could be included
 library(limma) 
 
-# simplest design
-  #first make matrix of 01 for IDH or TET2 mutations
+
+# simplest design: model gene expression with IDH and TET2 mutation status and 
+# pull top ranked significant genes from liner model fit, get probes for each
+# gene
+
 design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
   #then use this matrix to run bayesian analysis
 fit1 <- eBayes(lmFit(exprs(DNAme), design1))
