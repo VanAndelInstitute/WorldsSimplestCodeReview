@@ -10,6 +10,17 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
+```{r}
+if (!require("GEOquery")) {
+  BiocManager::install("GEOquery")
+  library(GEOquery)
+}
+
+if(!require("limma")) {
+  BiocManager::install("limma")
+  library(limma)
+}
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -162,3 +173,9 @@ fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 # 10 probes for TET2:purity
 
 ```
+It would seem tet2 and IDH mutations occur exclusively. As a result of the number of methylated sites for IDH Mutations vs. tet2 mutations, tet2 does not convincingly contribute to a global hypermethylation phenotype.
+
+
+
+
+
