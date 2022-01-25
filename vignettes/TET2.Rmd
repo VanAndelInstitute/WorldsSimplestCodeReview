@@ -1,6 +1,6 @@
 ---
 title: "Code review: TET2 and hypermethylation"
-author: "Tim Triche"
+author: "VAIGS Intro to Experimental Design, Class of 2026"
 date: "November 22nd, 2021"
 output: 
   html_document:
@@ -10,20 +10,13 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
-# K. Thurlow review 11_28_21
-# Connected to github via instructions on main fork
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
 library(BiocManager)
-BiocManager::install("GEOquery")
 load_all("./")
-# Error occurred saying GEOquery wasn't available. Added lines to library BiocManager and install GEOquery as part of BiocManager package.
-  #Asked whether to install from sources and update a/s/n, went for no to both. 
-  #Assuming load_all is function for loading all sub-packages, but not sure how you tell it which package it refers to.
 ```
 
 # Installation
@@ -35,20 +28,10 @@ Install the WorldsSimplestCodeReview package, if you haven't.
 #install.packages("remotes")
 #install.packages("BiocManager")
 #BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
-library(knitr)
-library(dplyr)
-  ## Said yes to update from sources this time. Also added dplyr to library. I generally have difficulty with setup every time so not sure if I'm missing an obvious step! Everything seems to be loaded OK now though, so on we go! 
+library("WorldsSimplestCodeReview")
 ```
 
-To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
-
-#This chunk was not necessary to run for me.-Riley
-```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE}
-
-# knitr::knit("TET2.Rmd", tangle = TRUE) 
-# [1] "TET2.R"
-  ## I'm still not sure what commands to put in the {} brackets for an r markdown so not 100% sure what these lines mean
-```
+To extract just the R code, you can use `knitr::knit(input, tangle=TRUE)`.
 
 # Introduction
 
