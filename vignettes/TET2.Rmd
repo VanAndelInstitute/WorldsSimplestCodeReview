@@ -10,18 +10,20 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
-I needed another package installed before this code would run. Package & Code is in the below chunk
-```{r}
-BiocManager::install('GEOquery')
-BiocManager::install('limma')
-```
+# K. Thurlow review 11_28_21
+# Connected to github via instructions on main fork
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(devtools)
+library(BiocManager)
+BiocManager::install("GEOquery")
 load_all("./")
+# Error occurred saying GEOquery wasn't available. Added lines to library BiocManager and install GEOquery as part of BiocManager package.
+  #Asked whether to install from sources and update a/s/n, went for no to both. 
+  #Assuming load_all is function for loading all sub-packages, but not sure how you tell it which package it refers to.
 ```
 
 # Installation
@@ -34,13 +36,18 @@ Install the WorldsSimplestCodeReview package, if you haven't.
 #install.packages("BiocManager")
 #BiocManager::install("VanAndelInstitute/WorldsSimplestCodeReview")
 library(knitr)
+library(dplyr)
+  ## Said yes to update from sources this time. Also added dplyr to library. I generally have difficulty with setup every time so not sure if I'm missing an obvious step! Everything seems to be loaded OK now though, so on we go! 
 ```
 
 To extract just the R code, you can use knitr::knit(input, tangle=TRUE):
+
 #This chunk was not necessary to run for me.-Riley
 ```{r, tangle, eval = FALSE, message = FALSE, echo = FALSE}
+
 # knitr::knit("TET2.Rmd", tangle = TRUE) 
 # [1] "TET2.R"
+  ## I'm still not sure what commands to put in the {} brackets for an r markdown so not 100% sure what these lines mean
 ```
 
 # Introduction
@@ -52,7 +59,8 @@ details can be found in [the paper](https://doi.org/10.1016/j.ccr.2010.11.015),
 which is indeed a landmark. Nevertheless, some fine details of the work seemed
 to disagree with the results of other cohorts when replication was attempted.
 
-![The money shot](figure/TET2.png)
+![The money shot](figure/TET2.png) 
+# This is Fig6 from the paper, suggesting TET2 mutant AML is associated with a hypermethylation p/type. Volcano plot (D) shows skew towards higher amount fo methylation in TET2 mutant compared to both TET2 and IDH WT. NB IDH and TET2 mutations mutually exclusive in AML.
 
 Some of you who have seen volcano plots before can guess where this is going.
 
@@ -67,39 +75,26 @@ library(GEOquery)
 if (!exists("DNAme")) data(DNAme)
 
 if (FALSE) { # this takes about 5 minutes:
-
+#This didn't actually take 5 minutes for me so I hope it hasn't missed anything! Updated none
   # needed to fetch data
   library(GEOquery) 
-  #ID for paper is GSE24505 make a new dataset called MSK_HOVON
-  #MSK_HOVON <- getGEO("GSE24505") returned the error that the "The size of the connection buffer (131072)        was not large enough to fit a complete line"
-  #increase vroom connection size x100 allowed that line of code to work
-  Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 100)
-  MSK_HOVON <- getGEO("GSE24505")
+  MSK_HOVON <- getGEO("GSE24505") #pulls GSE24505 dataset from GEOquery and labels it MSK_HOVON
 
   # skip the expression data:
-  
-  #make a platform that can easily be subsetted by annotation
-  platform <- sapply(MSK_HOVON, annotation)
-  #Define methylation data as an extractable value from platform
-  methylation <- which(platform == "GPL6604")
- 
-   #Get only methylation from MSK_HOVON
-  DNAme <- MSK_HOVON[[methylation]] # GPL6604, HG17_HELP_PROMOTER 
-    #Get sex variable from dataset
-  DNAme$male <-ifelse(DNAme$characteristics_ch1=="sex (male.1_female.2): 1",1,0)
-    #Get TET2 methylation variable from dataset
-  DNAme$TET2 <- ifelse(DNAme$characteristics_ch1.7 == "tet2: WT", 0, 1)
-    #Get IDH methylation variable from dataset
-  DNAme$IDH <- ifelse(DNAme$characteristics_ch1.8 == "idh1.idh2: WT", 0, 1)
-    #Get Purity variable from dataset
-  DNAme$purity <- as.integer(DNAme$"bm_%blasts:ch1") / 100
-    #Save this file! So that next time: if (!exists("DNAme")) data(DNAme) : will return "TRUE"
-  save(DNAme, file="../data/DNAme.rda")
+  platform <- sapply(MSK_HOVON, annotation) #Using MSK_HOVON, pull datapoints with annotation into "platform"
+  methylation <- which(platform == "GPL6604") #Select those datapoints within "platform" for which values are "GPL6604"- methylation data
+  DNAme <- MSK_HOVON[[methylation]] # GPL6604, HG17_HELP_PROMOTER. Create new dataset "DNAme" with just methylation data
+  DNAme$male <-ifelse(DNAme$characteristics_ch1=="sex (male.1_female.2): 1",1,0) #Variable w/in DNAme for sex
+  DNAme$TET2 <- ifelse(DNAme$characteristics_ch1.7 == "tet2: WT", 0, 1) #Variable w/in DNAme for TET2 mutation/ WT
+  DNAme$IDH <- ifelse(DNAme$characteristics_ch1.8 == "idh1.idh2: WT", 0, 1) #Variable w/in DNAme for IDH mutation/WT
+  DNAme$purity <- as.integer(DNAme$"bm_%blasts:ch1") / 100 #Variable w/in DNAme for % purity 
+  save(DNAme, file="../data/DNAme.rda") #Save DNAme dataset in local files
 
 }
 
+
 # how many probes, how many patients?
-dim(DNAme)
+dim(DNAme) #dimensions of new DNAme dataset; features == probes, samples == patients
 # Features  Samples
 #    25626      394
 
@@ -111,8 +106,8 @@ dim(DNAme)
 Is it the case that TET2, IDH1, and IDH2 mutations are exclusive?
 
 ```{r, heatmap, eval=TRUE}
-
 # always plot your data
+
 #this is the type of plot we are using...
 library(ComplexHeatmap)
 
@@ -129,8 +124,8 @@ Heatmap(mutations, col=c("lightgray","purple"), name="mutant", column_km=4,row_k
 Group 4 could have been easily missed if the data was not plotted!
 GSM604380 has both IDH and TET2 mutations.
 
-
 Do we see genome-wide hypermethylation from TET2 mutations? 
+  # No?!
 
 ```{r, TET2_vs_IDH}
 #This code is looking at methylation probes based on three different designs
@@ -143,6 +138,7 @@ Do we see genome-wide hypermethylation from TET2 mutations?
 library(limma) 
 
 
+
 # simplest design: model gene expression with IDH and TET2 mutation status and 
 # pull top ranked significant genes from liner model fit, get probes for each
 # gene
@@ -151,55 +147,63 @@ design1 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 ))
   #then use this matrix to run bayesian analysis
 fit1 <- eBayes(lmFit(exprs(DNAme), design1))
   # & now get number of sig (p<0.05) probes, split by IDH vs TET2
+
 (IDH_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
                                            coef=grep("IDH", colnames(design1)), 
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 6513 probes for IDH
+# 6513 probes methylated at a significance value of 0.05 for IDH
 
 (TET_diffmeth_probes_fit1 <- nrow(topTable(fit1, 
                                            coef=grep("TET2", colnames(design1)),
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 6 probes for TET2
+# 6 probes methylated at a significance value of 0.05 for TET2
 
 # control for sex
-  #make a matrix with 01 for mutation status and sex as a new column
-design2 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 + male ))
-  #bayesian analysis rerun with sex variable
-fit2 <- eBayes(lmFit(exprs(DNAme), design2))
-  #report sig probes
+design2 <- with(pData(DNAme), model.matrix( ~ IDH + TET2 + male )) #table with binary coding as design 1, but with addition of sex variable where 1==male, 0==female
+fit2 <- eBayes(lmFit(exprs(DNAme), design2)) #second Bayesian model with design 2 ie including sex confounder
+
 (IDH_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
                                            coef=grep("IDH", colnames(design2)), 
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 6651 probes for IDH 
+# 6651 probes methylated at a significance value of 0.05 for IDH 
+  # Higher number of significant probes for IDH when including sex variable
 
 (TET2_diffmeth_probes_fit2 <- nrow(topTable(fit2, 
                                             coef=grep("TET", colnames(design2)),
                                             p.value=0.05, # change if you like 
                                             number=Inf)))
-# 7 probes for TET2
+# 7 probes methylated at a significance value of 0.05 for TET2
+  # Slightly higher (+1) significant number of probes for TET2 when including sex variable
 
 # control for blast count
-#Do we assume here that blast count = purity? and vice versa? could use some help with understanding the measurement here.
+design3 <- with(pData(DNAme), model.matrix( ~ IDH:purity + TET2:purity)) #Table looking at %purity of sample for both IDH and TET2 on continuous scale from 0-1
+fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3)) # Bayesian analysis for purity 
 
-design3 <- with(pData(DNAme), model.matrix( ~ IDH:purity + TET2:purity))
-fit3 <- eBayes(lmFit(exprs(DNAme)[, as.integer(rownames(design3))], design3))
 
 (IDH_diffmeth_probes_fit3 <- nrow(topTable(fit3, 
                                            coef=grep("IDH", colnames(design3)), 
-                                           p.value=0.05, # change if you like 
+                                           p.value=0.05, 
                                            number=Inf)))
-# 7450 probes for IDH:purity
-
+# 7450 probes methylated at a significance value of 0.05 for IDH:purity
+  # Higher number of significant probes when fitting for % DNA purity of sample for IDH
 (TET2_diffmeth_probes_fit3 <- nrow(topTable(fit3, 
                                             coef=grep("TET", colnames(design3)),
-                                            p.value=0.05, # change if you like 
+                                            p.value=0.05, 
                                             number=Inf)))
-# 10 probes for TET2:purity
-
+# 10 probes methylated at a significance value of 0.05 for TET2:purity
+  #Higher number of significant probes when fitting for % DNA purity of sample for TET2
 ```
+# Conclusions and Critiques #
+I would guess from this analysis that the sex differences have an effect on the methylation status of IDH, and possibly also TET2, but as there are so few probes it is difficult to say this with any certainty for TET2. This low number also suggests to me that we do not see GW hypermethylation of TET2? 
+  It is also indicated that the %purity of obtained samples has a larger effect on methlyation status of both genes than either sex differences or mutation. Hence, it would be useful to do the mutational analysis with a threshold/ cut off for % purity of samples for both IDH and TET2 (looking at the design 3 table they don't always overlap very well). 
+
+
+This analysis also suggests that the authors assumption of mutual exclusivity between IDH and TET2 mutations is not seen in their sample so further investigation into this group (4 from heatmap), would be beneficial.
+  The authors are suggesting that LOF TET2 mutations are associated with the same epigenetic defects as IDH mutations, however using Bayesian analyses (fit 1) the mutant forms seemed to have wildly different methylation status (6513 for IDH and 6 for TET2), so I would like to look into this a bit further and see what they were getting at here! 
+
 
 In sum, there are more probes for IDH than TET2, on the order of 1000x more probes no matter which design (controlling for sex, purity, etc.)
 If this is the case, then the conclusions of this paper (that both mutations are associated with a hypermethylation pattern) should be called into question.
